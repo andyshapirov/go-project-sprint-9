@@ -33,22 +33,18 @@ func Generator(ctx context.Context, ch chan<- int64, fn func(int64)) {
 func Worker(in <-chan int64, out chan<- int64) {
 	// 2. Функция Worker
 	defer close(out)
-	for {
-		v, ok := <-in
-		if !ok {
-			return
-		}
-
+	for v := range in {
 		out <- v
-		time.Sleep(1 * time.Millisecond)
 	}
+
+	time.Sleep(1 * time.Millisecond)
 }
 
 func main() {
 	chIn := make(chan int64)
 
 	// 3. Создание контекста
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	// для проверки будем считать количество и сумму отправленных чисел
@@ -83,13 +79,10 @@ func main() {
 		go func(in <-chan int64, i int) {
 			defer wg.Done()
 
-			v, ok := <-in
-			if !ok {
-				return
+			for v := range in {
+				amounts[i]++
+				chOut <- v
 			}
-
-			chOut <- v
-			atomic.AddInt64(&amounts[i], 1)
 		}(outs[i], i)
 	}
 
