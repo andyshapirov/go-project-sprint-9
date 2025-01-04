@@ -35,9 +35,8 @@ func Worker(in <-chan int64, out chan<- int64) {
 	defer close(out)
 	for v := range in {
 		out <- v
+		time.Sleep(1 * time.Millisecond)
 	}
-
-	time.Sleep(1 * time.Millisecond)
 }
 
 func main() {
